@@ -10,18 +10,15 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
-    // This effect runs once on app load
     useEffect(() => {
         const loadUser = async () => {
             const storedToken = localStorage.getItem('token');
             if (storedToken) {
                 setToken(storedToken);
                 try {
-                    // Check if token is valid by fetching user data
-                    const res = await api.get('/auth/me'); 
+                    const res = await api.get('/auth/me');
                     setUser(res.data);
                 } catch (err) {
-                    // Token is invalid or expired
                     console.error('Token validation failed:', err);
                     localStorage.removeItem('token');
                     setToken(null);
@@ -36,7 +33,6 @@ export const AuthProvider = ({ children }) => {
         try {
             const res = await api.post('/auth/login', { email, password });
             const { token, user } = res.data;
-
             localStorage.setItem('token', token);
             setToken(token);
             setUser(user);
@@ -49,11 +45,10 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await api.post('/auth/logout'); // Tell backend to remove session
+            await api.post('/auth/logout');
         } catch (err) {
             console.error('Backend logout failed', err);
         } finally {
-            // Always clear frontend state
             localStorage.removeItem('token');
             setToken(null);
             setUser(null);
@@ -61,14 +56,22 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // --- NEW FUNCTION ---
+    // Call this after a successful plan change to update the UI
+    const updateUserPlan = (newPlan) => {
+        if (user) {
+            setUser(prevUser => ({ ...prevUser, plan: newPlan }));
+        }
+    };
+    // --------------------
+
     return (
-        <AuthContext.Provider value={{ token, user, login, logout, loading }}>
+        <AuthContext.Provider value={{ token, user, login, logout, loading, updateUserPlan }}>
             {!loading && children}
         </AuthContext.Provider>
     );
 };
 
-// Custom hook to easily use the context
 export const useAuth = () => {
     return useContext(AuthContext);
 };

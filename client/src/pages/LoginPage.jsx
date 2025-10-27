@@ -3,8 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('free@user.com'); // Pre-filled for easy testing
-    const [password, setPassword] = useState('password123');
+    const [email, setEmail] = useState(''); // <-- CHANGED
+    const [password, setPassword] = useState(''); // <-- CHANGED
     const [error, setError] = useState(null);
     const { login } = useAuth();
     const navigate = useNavigate();

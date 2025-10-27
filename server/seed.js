@@ -5,6 +5,10 @@ const Show = require('./models/Show');
 
 const MONGODB_URI = process.env.MONGO_URI;
 
+// Free, sample videos
+const VIDEO_SD = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+const VIDEO_HD = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4';
+
 const seedData = async () => {
     try {
         await mongoose.connect(MONGODB_URI);
@@ -15,7 +19,7 @@ const seedData = async () => {
         await Show.deleteMany({});
         console.log('Cleared existing data.');
 
-        // Create Users (Passwords will be hashed by pre-save hook)
+        // Create Users
         await User.create([
             { email: 'free@user.com', password: 'password123', plan: 'FREE' },
             { email: 'standard@user.com', password: 'password123', plan: 'STANDARD' },
@@ -24,37 +28,37 @@ const seedData = async () => {
         ]);
         console.log('Users created. Password for all is "password123".');
 
-        // Create Shows (now movies)
+        // Create Movies
         await Show.create([
             { 
                 title: 'Inception', 
                 duration: '2h 28min', 
                 posterUrl: 'https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq27gApcjEa6AFqO4.jpg', 
-                sdUrl: '/play/inception/sd', hdUrl: '/play/inception/hd', downloadUrl: '/download/inception' 
+                sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
             { 
                 title: 'The Dark Knight', 
                 duration: '2h 32min', 
                 posterUrl: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg', 
-                sdUrl: '/play/darkknight/sd', hdUrl: '/play/darkknight/hd', downloadUrl: '/download/darkknight' 
+                sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
             { 
                 title: 'Interstellar', 
                 duration: '2h 49min', 
                 posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', 
-                sdUrl: '/play/interstellar/sd', hdUrl: '/play/interstellar/hd', downloadUrl: '/download/interstellar' 
+                sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
             { 
                 title: 'The Matrix', 
                 duration: '2h 16min', 
                 posterUrl: 'https://image.tmdb.org/t/p/w500/f89JxwLokLdE00kTe9Tz6r7xOJE.jpg', 
-                sdUrl: '/play/matrix/sd', hdUrl: '/play/matrix/hd', downloadUrl: '/download/matrix' 
+                sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
             { 
                 title: 'Oppenheimer', 
                 duration: '3h 0m', 
                 posterUrl: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', 
-                sdUrl: '/play/oppenheimer/sd', hdUrl: '/play/oppenheimer/hd', downloadUrl: '/download/oppenheimer' 
+                sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD 
             },
         ]);
         console.log('Movies created.');

@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import SubscriptionPage from './pages/SubscriptionPage'; // <-- IMPORT
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -11,7 +12,7 @@ function App() {
       {/* Protected Routes Wrapper */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
-        {/* You could add an <AdminPage /> route here too */}
+        <Route path="/subscription" element={<SubscriptionPage />} /> {/* <-- ADD */}
       </Route>
 
       <Route path="*" element={<LoginPage />} />
