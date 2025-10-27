@@ -45,25 +45,43 @@ export default function DashboardPage() {
         setIsPlayerOpen(true);
     };
 
+    // --- NEW DOWNLOAD FUNCTION ---
     const handleDownload = async (showId, showTitle) => {
         try {
-            const res = await api.get(`/content/download/${showId}`);
-            const { downloadUrl } = res.data;
+            // 1. Request the file from our server.
+            // We expect a 'blob' (the file data) in response.
+            const res = await api.get(`/content/download/${showId}`, {
+                responseType: 'blob', // This is crucial
+            });
 
+            // 2. Create a temporary URL for the blob
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+
+            // 3. Create a hidden link to trigger the download
             const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.setAttribute('download', `${showTitle.replace(' ', '_')}.mp4`);
-            link.style.display = 'none';
-            document.body.appendChild(link);
+            link.href = url;
+            const fileName = `${showTitle.replace(' ', '_')}.mp4`;
+            link.setAttribute('download', fileName);
             
+            // 4. Append, click, and remove the link
+            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url); // Clean up the object URL
 
         } catch (err) {
-            const errorMsg = err.response?.data?.message || 'Download failed';
-            alert(`Error: ${errorMsg}`);
+            // If the user is not premium, the API will send JSON error.
+            // We need to parse that JSON from the blob.
+            if (err.response.data.type === 'application/json') {
+                const errorText = await err.response.data.text();
+                const errorJson = JSON.parse(errorText);
+                alert(`Error: ${errorJson.message}`);
+            } else {
+                alert('Download failed. Please try again.');
+            }
         }
     };
+    // -----------------------------
 
     if (!user) {
         return <div className="flex items-center justify-center min-h-screen">Loading user...</div>
@@ -76,7 +94,7 @@ export default function DashboardPage() {
                 onClose={() => setIsPlayerOpen(false)}
                 videoUrl={selectedVideoUrl}
                 isFreeUser={user.plan === 'FREE'}
-                adPosterUrl={adPoster} // <-- PASS AD POSTER HERE
+                adPosterUrl={adPoster}
             />
 
             <div className="container p-8 mx-auto">
@@ -102,7 +120,6 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
-                {/* This is the Ad Banner */}
                 {user.plan === 'FREE' && adPoster && (
                     <div className="p-4 mb-6 text-center bg-gray-800 rounded-lg shadow-lg">
                         <h4 className="mb-2 text-lg font-bold text-yellow-400">Advertisement</h4>
@@ -128,7 +145,6 @@ export default function DashboardPage() {
                         className="flex flex-col bg-gray-800 rounded-lg shadow-lg overflow-hidden
                                    transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-2xl"
                     >
-                        {/* This will now load from /public/posters/fight_club.jpg etc. */}
                         <img src={show.posterUrl} alt={show.title} className="object-cover w-full h-64" />
                         
                         <div className="flex flex-col justify-between flex-grow p-4">
