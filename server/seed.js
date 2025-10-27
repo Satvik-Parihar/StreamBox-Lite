@@ -28,37 +28,37 @@ const seedData = async () => {
         ]);
         console.log('Users created. Password for all is "password123".');
 
-        // Create Movies
+        // Create Movies with LOCAL poster URLs
         await Show.create([
-            { 
-                title: 'Inception', 
-                duration: '2h 28min', 
-                posterUrl: 'https://image.tmdb.org/t/p/w500/oYuLEt3zVCKq27gApcjEa6AFqO4.jpg', 
+            {
+                title: 'Fight Club',
+                duration: '2h 19min',
+                posterUrl: '/posters/fight_club.jpg', // <-- LOCAL PATH
                 sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
-            { 
-                title: 'The Dark Knight', 
-                duration: '2h 32min', 
-                posterUrl: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg', 
+            {
+                title: 'The Dark Knight',
+                duration: '2h 32min',
+                posterUrl: '/posters/dark_knight.jpg', // <-- LOCAL PATH
                 sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
-            { 
-                title: 'Interstellar', 
-                duration: '2h 49min', 
-                posterUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg', 
+            {
+                title: 'Interstellar',
+                duration: '2h 49min',
+                posterUrl: '/posters/interstellar.jpg', // <-- LOCAL PATH
                 sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
-            { 
-                title: 'The Matrix', 
-                duration: '2h 16min', 
-                posterUrl: 'https://image.tmdb.org/t/p/w500/f89JxwLokLdE00kTe9Tz6r7xOJE.jpg', 
+            {
+                title: 'Pulp Fiction',
+                duration: '2h 34min',
+                posterUrl: '/posters/pulp_fiction.jpg', // <-- LOCAL PATH
                 sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
-            { 
-                title: 'Oppenheimer', 
-                duration: '3h 0m', 
-                posterUrl: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', 
-                sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD 
+            {
+                title: 'Oppenheimer',
+                duration: '3h 0m',
+                posterUrl: '/posters/oppenheimer.jpg', // <-- LOCAL PATH
+                sdUrl: VIDEO_SD, hdUrl: VIDEO_HD, downloadUrl: VIDEO_HD
             },
         ]);
         console.log('Movies created.');

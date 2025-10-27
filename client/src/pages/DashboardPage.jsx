@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom'; // <-- IMPORT
+import { Link } from 'react-router-dom';
 import api from '../api';
-import VideoPlayerModal from '../components/VideoPlayerModal'; // <-- IMPORT
+import VideoPlayerModal from '../components/VideoPlayerModal';
 
 export default function DashboardPage() {
     const { user, logout } = useAuth();
@@ -10,11 +10,8 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [adPoster, setAdPoster] = useState(null);
-
-    // --- NEW STATE FOR VIDEO PLAYER ---
     const [isPlayerOpen, setIsPlayerOpen] = useState(false);
     const [selectedVideoUrl, setSelectedVideoUrl] = useState('');
-    // ----------------------------------
 
     useEffect(() => {
         const fetchShows = async () => {
@@ -43,12 +40,30 @@ export default function DashboardPage() {
         fetchShows();
     }, [logout]);
 
-    // --- NEW FUNCTION TO OPEN PLAYER ---
     const handlePlayClick = (videoUrl) => {
         setSelectedVideoUrl(videoUrl);
         setIsPlayerOpen(true);
     };
-    // -----------------------------------
+
+    const handleDownload = async (showId, showTitle) => {
+        try {
+            const res = await api.get(`/content/download/${showId}`);
+            const { downloadUrl } = res.data;
+
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.setAttribute('download', `${showTitle.replace(' ', '_')}.mp4`);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (err) {
+            const errorMsg = err.response?.data?.message || 'Download failed';
+            alert(`Error: ${errorMsg}`);
+        }
+    };
 
     if (!user) {
         return <div className="flex items-center justify-center min-h-screen">Loading user...</div>
@@ -56,12 +71,12 @@ export default function DashboardPage() {
 
     return (
         <>
-            {/* --- VIDEO PLAYER MODAL (runs outside the layout) --- */}
             <VideoPlayerModal 
                 isOpen={isPlayerOpen}
                 onClose={() => setIsPlayerOpen(false)}
                 videoUrl={selectedVideoUrl}
                 isFreeUser={user.plan === 'FREE'}
+                adPosterUrl={adPoster} // <-- PASS AD POSTER HERE
             />
 
             <div className="container p-8 mx-auto">
@@ -74,7 +89,6 @@ export default function DashboardPage() {
                             {user.plan} PLAN
                         </span>
                         
-                        {/* --- NEW LINK TO SUBSCRIPTION PAGE --- */}
                         <Link 
                             to="/subscription" 
                             className="px-4 py-2 text-sm font-medium bg-gray-600 rounded hover:bg-gray-500"
@@ -88,6 +102,7 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
+                {/* This is the Ad Banner */}
                 {user.plan === 'FREE' && adPoster && (
                     <div className="p-4 mb-6 text-center bg-gray-800 rounded-lg shadow-lg">
                         <h4 className="mb-2 text-lg font-bold text-yellow-400">Advertisement</h4>
@@ -107,7 +122,13 @@ export default function DashboardPage() {
                 
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {shows.map(show => (
-                    <div key={show._id} className="flex flex-col bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                    
+                    <div 
+                        key={show._id} 
+                        className="flex flex-col bg-gray-800 rounded-lg shadow-lg overflow-hidden
+                                   transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-2xl"
+                    >
+                        {/* This will now load from /public/posters/fight_club.jpg etc. */}
                         <img src={show.posterUrl} alt={show.title} className="object-cover w-full h-64" />
                         
                         <div className="flex flex-col justify-between flex-grow p-4">
@@ -117,7 +138,6 @@ export default function DashboardPage() {
                             </div>
                             
                             <div className="flex flex-wrap gap-2">
-                                {/* --- UPDATED onClick --- */}
                                 <button 
                                     onClick={() => handlePlayClick(show.sdUrl)}
                                     className="flex-grow px-4 py-2 text-sm font-medium bg-gray-600 rounded hover:bg-gray-500"
@@ -136,7 +156,7 @@ export default function DashboardPage() {
                                 
                                 {user.plan === 'PREMIUM' && (
                                     <button 
-                                        onClick={() => alert('Downloading... (feature not implemented)')}
+                                        onClick={() => handleDownload(show._id, show.title)}
                                         className="flex-grow px-4 py-2 text-sm font-medium bg-green-600 rounded hover:bg-green-500"
                                     >
                                         Download

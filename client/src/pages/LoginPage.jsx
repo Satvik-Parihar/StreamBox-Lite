@@ -1,20 +1,19 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom'; // <-- REMOVED
 
 export default function LoginPage() {
-    const [email, setEmail] = useState(''); // <-- CHANGED
-    const [password, setPassword] = useState(''); // <-- CHANGED
+    const [email, setEmail] = useState(''); 
+    const [password, setPassword] = useState(''); 
     const [error, setError] = useState(null);
     const { login } = useAuth();
-    const navigate = useNavigate();
+    // const navigate = useNavigate(); // <-- REMOVED
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
         try {
-            await login(email, password);
-            navigate('/dashboard');
+            await login(email, password); // AuthContext handles navigation
         } catch (err) {
             setError(err.message);
         }
@@ -51,7 +50,10 @@ export default function LoginPage() {
                     />
                 </label>
                 
-                <button type="submit" className="p-2 mt-2 font-bold bg-blue-600 rounded hover:bg-blue-500">
+                <button 
+                    type="submit" 
+                    className="p-3 mt-2 font-bold text-white transition-all duration-300 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-500 hover:shadow-blue-500/50"
+                >
                     Login
                 </button>
             </form>

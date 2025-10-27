@@ -1,35 +1,73 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-// This is a basic modal. In a real app, you'd use a library like react-modal.
-export default function VideoPlayerModal({ isOpen, onClose, videoUrl, isFreeUser }) {
-    const [showAd, setShowAd] = useState(isFreeUser);
-    const [adCountdown, setAdCountdown] = useState(5);
+export default function VideoPlayerModal({ isOpen, onClose, videoUrl, isFreeUser, adPosterUrl }) { // <-- ADDED adPosterUrl
+    const videoRef = useRef(null);
+    const [isAdPlaying, setIsAdPlaying] = useState(false);
+    const [adText, setAdText] = useState('');
+    const [midRollPlayed, setMidRollPlayed] = useState(false);
 
     // This effect runs when the modal opens
     useEffect(() => {
-        if (isOpen && isFreeUser) {
-            setShowAd(true);
-            setAdCountdown(5);
+        if (!isOpen) {
+            setMidRollPlayed(false); // Reset on close
+            return;
+        }
 
-            // Start the ad countdown
+        if (isFreeUser) {
+            // --- Pre-roll Ad ---
+            setIsAdPlaying(true);
+            setAdText('Your video will begin in 5...');
+            let countdown = 5;
+
             const timer = setInterval(() => {
-                setAdCountdown(prev => prev - 1);
+                countdown--;
+                setAdText(`Your video will begin in ${countdown}...`);
             }, 1000);
 
-            // After 5 seconds, clear interval and hide ad
             const adTimer = setTimeout(() => {
                 clearInterval(timer);
-                setShowAd(false);
+                setIsAdPlaying(false);
+                videoRef.current?.play();
             }, 5000);
 
-            return () => { // Cleanup on unmount/close
+            return () => {
                 clearInterval(timer);
                 clearTimeout(adTimer);
             };
-        } else if (isOpen && !isFreeUser) {
-            setShowAd(false); // Non-free users never see ads
+        } else {
+            // Not a free user, just play the video
+            setIsAdPlaying(false);
+            // Use a slight delay to ensure the video ref is ready
+            setTimeout(() => videoRef.current?.play(), 50);
         }
     }, [isOpen, isFreeUser]);
+
+    // --- Mid-roll Ad Logic ---
+    const handleTimeUpdate = () => {
+        if (
+            isFreeUser &&
+            !midRollPlayed &&
+            videoRef.current &&
+            videoRef.current.currentTime > 10 // Play ad at 10 seconds
+        ) {
+            videoRef.current.pause();
+            setMidRollPlayed(true); // Only play once
+            setIsAdPlaying(true);
+            setAdText('Ad: Thanks for your patience. Resuming in 5...');
+
+            let countdown = 5;
+            const timer = setInterval(() => {
+                countdown--;
+                setAdText(`Ad: Thanks for your patience. Resuming in ${countdown}...`);
+            }, 1000);
+
+            setTimeout(() => {
+                clearInterval(timer);
+                setIsAdPlaying(false);
+                videoRef.current?.play();
+            }, 5000);
+        }
+    };
 
     if (!isOpen) {
         return null;
@@ -37,48 +75,50 @@ export default function VideoPlayerModal({ isOpen, onClose, videoUrl, isFreeUser
 
     return (
         // Backdrop
-        <div
-            onClick={onClose}
+        <div 
+            onClick={onClose} 
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75"
         >
             {/* Modal Content */}
-            <div
-                onClick={(e) => e.stopPropagation()} // Prevent closing modal on content click
+            <div 
+                onClick={(e) => e.stopPropagation()} 
                 className="relative w-full max-w-4xl bg-black rounded-lg shadow-xl"
             >
                 {/* Close Button */}
-                <button
+                <button 
                     onClick={onClose}
-                    className="absolute z-10 p-1 text-2xl text-white bg-gray-800 rounded-full -top-3 -right-3 hover:bg-red-500"
+                    className="absolute z-30 p-1 text-2xl text-white bg-gray-800 rounded-full -top-3 -right-3 hover:bg-red-500"
                 >
                     &times;
                 </button>
 
-                <div className="aspect-video">
-                    {showAd ? (
-                        // --- Ad Player ---
-                        <div className="flex flex-col items-center justify-center w-full h-full text-white bg-gray-900">
-                            <h2 className="text-3xl font-bold">Your ad will play here</h2>
-                            <p className="mt-4 text-xl">Video will begin in... {adCountdown}</p>
-                            <button
-                                onClick={() => setShowAd(false)}
-                                className="px-4 py-2 mt-6 text-sm bg-gray-700 rounded hover:bg-gray-600"
-                            >
-                                Skip Ad
-                            </button>
+                <div className="relative aspect-video">
+                    {/* --- Ad Overlay --- */}
+                    {isAdPlaying && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center w-full h-full text-white bg-gray-900">
+                            {/* --- THIS WILL NOW SHOW THE POSTER --- */}
+                            <img 
+                                src={adPosterUrl} 
+                                alt="Ad" 
+                                className="absolute object-cover w-full h-full opacity-10" 
+                            />
+                            <h2 className="z-10 text-3xl font-bold">StreamBox Lite Ad</h2>
+                            <p className="z-10 mt-4 text-xl">{adText}</p>
                         </div>
-                    ) : (
-                        // --- Real Video Player ---
-                        <video
-                            src={videoUrl}
-                            controls
-                            autoPlay
-                            width="100%"
-                            height="100%"
-                        >
-                            Your browser does not support the video tag.
-                        </video>
                     )}
+
+                    {/* --- Real Video Player --- */}
+                    <video 
+                        ref={videoRef}
+                        src={videoUrl} 
+                        controls 
+                        autoPlay={!isFreeUser} // Don't autoplay if pre-roll ad is playing
+                        width="100%" 
+                        height="100%"
+                        onTimeUpdate={handleTimeUpdate}
+                    >
+                        Your browser does not support the video tag.
+                    </video>
                 </div>
             </div>
         </div>

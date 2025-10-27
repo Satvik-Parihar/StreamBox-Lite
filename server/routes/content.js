@@ -46,7 +46,7 @@ router.get('/download/:id', auth, async (req, res) => {
         const show = await Show.findById(req.params.id);
         if (!show) return res.status(404).json({ message: 'Show not found' });
 
-        res.json({ message: `Downloading from ${show.downloadUrl}` });
+        res.json({ downloadUrl: show.downloadUrl });
 
     } catch (err) {
         res.status(500).send('Server Error');
