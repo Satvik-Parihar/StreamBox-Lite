@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const ShowSchema = new mongoose.Schema({
     title: String,
-    duration: String, // "45 min"
+    duration: String, 
+    posterUrl: String, 
     sdUrl: String,
     hdUrl: String,
     downloadUrl: String

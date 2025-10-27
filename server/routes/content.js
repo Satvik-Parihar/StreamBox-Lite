@@ -1,34 +1,56 @@
 const router = require('express').Router();
-const auth = require('../middleware/auth'); // Your new middleware
+const auth = require('../middleware/auth');
 const Show = require('../models/Show');
 
-// Get all shows (Protected Route)
+// @route   GET /api/content/shows
+// @desc    Get all shows (Protected)
 router.get('/shows', auth, async (req, res) => {
-    // const shows = await Show.find(); // In real app, you'd have data
-    const shows = [ // Using dummy data for speed
-         {_id: 1, title: 'Show 1', duration: '50 min'},
-         {_id: 2, title: 'Show 2', duration: '42 min'}
-    ];
-    res.json(shows);
+    try {
+        const shows = await Show.find();
+        res.json(shows);
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
 });
 
-// "Play" a show (Protected Route with Plan Logic)
-router.get('/play/:id', auth, (req, res) => {
-    const { quality } = req.query; // e.g., ?quality=HD
-    const userPlan = req.user.plan; // We get this from the auth middleware
+// @route   GET /api/content/play/:id
+// @desc    "Play" a show (Protected + Plan Logic)
+router.get('/play/:id', auth, async (req, res) => {
+    try {
+        const { quality } = req.query; // ?quality=HD
+        const userPlan = req.user.plan;
 
-    if (quality === 'HD' && userPlan === 'FREE') {
-        return res.status(403).json({ message: 'Upgrade to watch in HD.' });
+        if (quality === 'HD' && userPlan === 'FREE') {
+            return res.status(403).json({ message: 'Upgrade to watch in HD.' });
+        }
+        
+        const show = await Show.findById(req.params.id);
+        if (!show) return res.status(404).json({ message: 'Show not found' });
+        
+        const url = (quality === 'HD') ? show.hdUrl : show.sdUrl;
+        res.json({ message: `Streaming from ${url}` });
+
+    } catch (err) {
+        res.status(500).send('Server Error');
     }
-    res.json({ message: `Playing show ${req.params.id} in ${quality || 'SD'}` });
 });
 
-// "Download" a show (Protected Route with Plan Logic)
-router.get('/download/:id', auth, (req, res) => {
-    if (req.user.plan !== 'PREMIUM') {
-        return res.status(403).json({ message: 'Upgrade to Premium to download.' });
+// @route   GET /api/content/download/:id
+// @desc    "Download" a show (Protected + Plan Logic)
+router.get('/download/:id', auth, async (req, res) => {
+    try {
+        if (req.user.plan !== 'PREMIUM') {
+            return res.status(403).json({ message: 'Upgrade to Premium to download.' });
+        }
+
+        const show = await Show.findById(req.params.id);
+        if (!show) return res.status(404).json({ message: 'Show not found' });
+
+        res.json({ message: `Downloading from ${show.downloadUrl}` });
+
+    } catch (err) {
+        res.status(500).send('Server Error');
     }
-    res.json({ message: `Downloading show ${req.params.id}` });
 });
 
 module.exports = router;
